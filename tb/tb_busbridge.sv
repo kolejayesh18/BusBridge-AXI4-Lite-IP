@@ -454,5 +454,68 @@ module tb_busbridge;
         $finish;
 
     end
+        // --------------------------------------------------------
+    // AXI-LITE PROTOCOL CHECKS
+    // --------------------------------------------------------
+
+    // AW channel: address must remain stable while stalled
+    logic [31:0] awaddr_check;
+
+    always_ff @(posedge clk) begin
+        if (rst_n && s_axi_awvalid && !s_axi_awready) begin
+            if (awaddr_check !== s_axi_awaddr)
+                $display("[ASSERT FAIL] AWADDR changed while AWVALID && !AWREADY");
+        end
+
+        if (rst_n && s_axi_awvalid && !s_axi_awready)
+            awaddr_check <= s_axi_awaddr;
+    end
+
+    // W channel: data and strobe must remain stable while stalled
+    logic [31:0] wdata_check;
+    logic [3:0]  wstrb_check;
+
+    always_ff @(posedge clk) begin
+        if (rst_n && s_axi_wvalid && !s_axi_wready) begin
+            if ((wdata_check !== s_axi_wdata) ||
+                (wstrb_check !== s_axi_wstrb))
+                $display("[ASSERT FAIL] WDATA/WSTRB changed while WVALID && !WREADY");
+        end
+
+        if (rst_n && s_axi_wvalid && !s_axi_wready) begin
+            wdata_check <= s_axi_wdata;
+            wstrb_check <= s_axi_wstrb;
+        end
+    end
+
+    // B channel: response must remain stable while stalled
+    logic [1:0] bresp_check;
+
+    always_ff @(posedge clk) begin
+        if (rst_n && s_axi_bvalid && !s_axi_bready) begin
+            if (bresp_check !== s_axi_bresp)
+                $display("[ASSERT FAIL] BRESP changed while BVALID && !BREADY");
+        end
+
+        if (rst_n && s_axi_bvalid && !s_axi_bready)
+            bresp_check <= s_axi_bresp;
+    end
+
+    // R channel: data and response must remain stable while stalled
+    logic [31:0] rdata_check;
+    logic [1:0]  rresp_check;
+
+    always_ff @(posedge clk) begin
+        if (rst_n && s_axi_rvalid && !s_axi_rready) begin
+            if ((rdata_check !== s_axi_rdata) ||
+                (rresp_check !== s_axi_rresp))
+                $display("[ASSERT FAIL] RDATA/RRESP changed while RVALID && !RREADY");
+        end
+
+        if (rst_n && s_axi_rvalid && !s_axi_rready) begin
+            rdata_check <= s_axi_rdata;
+            rresp_check <= s_axi_rresp;
+        end
+    end
 
 endmodule
